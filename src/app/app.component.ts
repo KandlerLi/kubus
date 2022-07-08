@@ -26,13 +26,21 @@ export class AppComponent implements OnInit {
 
   private fieldOffset = {x: -642, y: 21}
 
+  private MAX = 120
+  private MIN = 100
+
   ngOnInit(): void {
     this.ctx = this.canvas.nativeElement.getContext('2d');
 
-    this.cubes = this.circle(300) // 320
+    this.cubes = [
+      ... this.circle(this.MIN),
+      ... this.circle(this.MAX),
+      ... this.lines(this.MIN, this.MAX, 10)
+    ] // 320
     this.center()
 
     this.draw();
+    this.resizeCanvas()
   }
 
   private center() {
@@ -59,6 +67,17 @@ export class AppComponent implements OnInit {
 
     return Math.min(xZoom, yZoom)
   }
+
+  private lines(start: number, end: number, amount: number): Cube[] {
+    return [...Array(Math.ceil(amount/4)).keys()]
+        .map(i => i*360/amount)
+        .map(angle => [...Array(end-start).keys()].map(x => x + start).map(x => {
+          const y = Math.tan(angle) * x
+          return { x, y, z: 0, color: 'orange' };
+        })).flat()
+  }
+
+  // return {x: angle, y: angle, z: 0, color: 'orange'}
 
   private circle(r: number): Cube[] {
     return [...Array(r).keys()]
@@ -214,5 +233,11 @@ export class AppComponent implements OnInit {
       return { x: e.clientX, y: e.clientY };
     }
     return { x: 0, y: 0 };
+  }
+
+  @HostListener('window:resize', ['$event'])
+  private resizeCanvas() {
+    this.canvas.nativeElement.width = document.documentElement.clientWidth
+    this.canvas.nativeElement.height = document.documentElement.clientHeight
   }
 }
